@@ -1,0 +1,19 @@
+{
+  "name": "language-layer",
+  "version": "1.0.0",
+  "description": "Chunk 2: Language Layer (STT/TTS via Sarvam AI) for the retail voice AI assistant",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "form-data": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

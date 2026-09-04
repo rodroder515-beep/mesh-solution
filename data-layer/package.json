@@ -1,0 +1,19 @@
+{
+  "name": "data-layer",
+  "version": "1.0.0",
+  "description": "Chunk 4: Data Layer (mock POS) for the retail voice AI assistant",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "reset": "node scripts/reset.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

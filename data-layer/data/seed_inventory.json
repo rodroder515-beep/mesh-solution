@@ -1,0 +1,29 @@
+{
+  "items": [
+    { "item_name": "sugar", "stock": 42, "unit": "kg", "price_per_unit": 45 },
+    { "item_name": "rice", "stock": 120, "unit": "kg", "price_per_unit": 60 },
+    { "item_name": "atta", "stock": 8, "unit": "packet", "price_per_unit": 55 },
+    { "item_name": "toor dal", "stock": 35, "unit": "kg", "price_per_unit": 140 },
+    { "item_name": "moong dal", "stock": 20, "unit": "kg", "price_per_unit": 130 },
+    { "item_name": "salt", "stock": 60, "unit": "packet", "price_per_unit": 20 },
+    { "item_name": "sunflower oil", "stock": 15, "unit": "litre", "price_per_unit": 165 },
+    { "item_name": "groundnut oil", "stock": 10, "unit": "litre", "price_per_unit": 210 },
+    { "item_name": "tea powder", "stock": 25, "unit": "packet", "price_per_unit": 90 },
+    { "item_name": "coffee powder", "stock": 12, "unit": "packet", "price_per_unit": 150 },
+    { "item_name": "milk", "stock": 30, "unit": "litre", "price_per_unit": 58 },
+    { "item_name": "curd", "stock": 18, "unit": "packet", "price_per_unit": 35 },
+    { "item_name": "biscuits", "stock": 80, "unit": "packet", "price_per_unit": 25 },
+    { "item_name": "soap", "stock": 50, "unit": "piece", "price_per_unit": 40 },
+    { "item_name": "detergent", "stock": 22, "unit": "kg", "price_per_unit": 110 },
+    { "item_name": "chilli powder", "stock": 14, "unit": "kg", "price_per_unit": 220 },
+    { "item_name": "turmeric powder", "stock": 16, "unit": "kg", "price_per_unit": 180 },
+    { "item_name": "onion", "stock": 45, "unit": "kg", "price_per_unit": 30 }
+  ],
+  "orders": [
+    { "order_id": "ORD1001", "item_name": "atta", "quantity": 50, "status": "pending", "placed_on": "2026-09-01" },
+    { "order_id": "ORD1002", "item_name": "sunflower oil", "quantity": 20, "status": "delivered", "placed_on": "2026-08-25" },
+    { "order_id": "ORD1003", "item_name": "coffee powder", "quantity": 15, "status": "cancelled", "placed_on": "2026-08-20" },
+    { "order_id": "ORD1004", "item_name": "groundnut oil", "quantity": 10, "status": "delivered", "placed_on": "2026-08-15" }
+  ],
+  "bills": []
+}

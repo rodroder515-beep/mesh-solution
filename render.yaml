@@ -1,0 +1,102 @@
+# Render Blueprint for the Retail Voice AI Assistant backend (Chunks 2-5).
+#
+# Deploys 4 services from this one repo, each from its own subdirectory, and
+# wires them together automatically using Render's built-in service URLs —
+# no manual copy-pasting of URLs between dashboards required after the first
+# sync.
+#
+# Pipeline: Interface (not in this repo yet) -> language-layer -> brain-layer
+#           -> safety-layer -> data-layer -> safety-layer -> brain-layer
+#           -> language-layer -> Interface
+#
+# NOTE ON PLAN: all 4 services default to the free plan. Free services spin
+# down after 15 min of inactivity and take ~30-60s to wake on the next
+# request. That can eat into the Safety Layer's 60s confirmation timeout on a
+# cold start. Bump `plan:` to `starter` on data-layer and safety-layer if you
+# hit that during testing.
+#
+# After `render blueprint sync` (or connecting this repo in the Render
+# dashboard), you still need to fill in two secrets by hand — Render will
+# prompt for them:
+#   - brain-layer:    ANTHROPIC_API_KEY
+#   - language-layer: SARVAM_API_KEY (optional — omitting it runs Language
+#     Layer in mock mode, which is fine for backend integration testing)
+
+services:
+  # ---- Chunk 4: Data Layer (mock POS) ----
+  - type: web
+    name: data-layer
+    runtime: node
+    plan: free
+    rootDir: data-layer
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  # ---- Chunk 5: Safety Layer ----
+  - type: web
+    name: safety-layer
+    runtime: python
+    plan: free
+    rootDir: safety-layer
+    buildCommand: pip install -r requirements.txt
+    # Render doesn't support string interpolation directly in render.yaml, so
+    # we build the full DATA_LAYER_URL (base + /action) in the shell at
+    # start time, from the Data Layer's own Render URL.
+    startCommand: >-
+      sh -c 'export DATA_LAYER_URL="$DATA_LAYER_BASE_URL/action"; python app.py'
+    healthCheckPath: /health
+    envVars:
+      - key: SAFETY_LAYER_PORT
+        value: 10000
+      - key: PORT
+        value: 10000
+      - key: CONFIRMATION_TIMEOUT_SECONDS
+        value: 60
+      - key: SAFETY_LAYER_LOG_PATH
+        value: safety_layer_actions.jsonl
+      - key: DATA_LAYER_BASE_URL
+        fromService:
+          name: data-layer
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # ---- Chunk 3: Brain Layer ----
+  - type: web
+    name: brain-layer
+    runtime: node
+    plan: free
+    rootDir: brain-layer
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        value: claude-sonnet-5
+      - key: DOWNSTREAM_URL
+        fromService:
+          name: safety-layer
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # ---- Chunk 2: Language Layer ----
+  - type: web
+    name: language-layer
+    runtime: node
+    plan: free
+    rootDir: language-layer
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SARVAM_API_KEY
+        sync: false

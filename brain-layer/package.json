@@ -1,0 +1,22 @@
+{
+  "name": "brain-layer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chunk 3: Brain Layer for the Retail Voice AI Assistant (intent routing via Claude)",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "mock-data": "node src/mockDataLayer.js",
+    "test:classify": "node test/runClassifierTests.js",
+    "test:pipeline": "node test/runPipelineTest.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
