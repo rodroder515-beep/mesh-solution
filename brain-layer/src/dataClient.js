@@ -28,8 +28,7 @@ export async function sendActionRequest(actionRequest) {
       };
     }
 
-    const result = await res.json();
-    return result;
+    return await res.json();
   } catch (err) {
     return {
       type: "action_result",
@@ -37,6 +36,41 @@ export async function sendActionRequest(actionRequest) {
       data: null,
       error: `downstream_unreachable: ${err.message}`,
       session_id: actionRequest.session_id,
+    };
+  }
+}
+
+/**
+ * @param {object} confirmationResponse - { confirmed, session_id, confirmation_id }
+ * @returns {Promise<object>} action_result (section 4d)
+ */
+export async function sendConfirmationResponse(confirmationResponse) {
+  try {
+    const res = await fetch(`${DOWNSTREAM_URL}/confirmation_response`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(confirmationResponse),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return {
+        type: "action_result",
+        success: false,
+        data: null,
+        error: `downstream_error_${res.status}: ${text || res.statusText}`,
+        session_id: confirmationResponse.session_id,
+      };
+    }
+
+    return await res.json();
+  } catch (err) {
+    return {
+      type: "action_result",
+      success: false,
+      data: null,
+      error: `downstream_unreachable: ${err.message}`,
+      session_id: confirmationResponse.session_id,
     };
   }
 }

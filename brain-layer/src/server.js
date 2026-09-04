@@ -3,7 +3,7 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 
 import { classifyIntent } from "./classifier.js";
-import { sendActionRequest } from "./dataClient.js";
+import { sendActionRequest, sendConfirmationResponse } from "./dataClient.js";
 import { generateResponseText } from "./responseGenerator.js";
 import { logClassification } from "./logger.js";
 import { requiresConfirmation } from "./actions.js";
@@ -12,6 +12,15 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 
 const PORT = process.env.PORT || 5002;
+
+// Chunk 6 integration fix: the Safety Layer's response to a write action_request
+// is a `confirmation_required` message, not an action_result — it carries a
+// `confirmation_id` the Brain Layer needs later to resolve the confirmation,
+// but which the Interface Layer (Chunk 1) never sees or stores itself (its
+// ConfirmationDecisionPayload is just { confirmed, session_id }). So the Brain
+// Layer holds the mapping itself, session_id -> pending confirmation details,
+// for the (short) window between asking and getting an answer.
+const pendingConfirmations = new Map();
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", layer: "brain" });
@@ -71,6 +80,24 @@ app.post("/process", async (req, res) => {
 
     const actionResult = await sendActionRequest(actionRequest);
 
+    if (actionResult.type === "confirmation_required") {
+      pendingConfirmations.set(sessionId, {
+        confirmationId: actionResult.confirmation_id,
+        action: decision.action,
+        params: decision.params,
+        targetLanguage,
+      });
+
+      return res.json({
+        type: "confirmation_required",
+        message: actionResult.message,
+        action: decision.action,
+        params: decision.params,
+        target_language: targetLanguage,
+        session_id: sessionId,
+      });
+    }
+
     const responseText = generateResponseText(decision.action, actionResult);
 
     return res.json({
@@ -87,6 +114,51 @@ app.post("/process", async (req, res) => {
       session_id: sessionId,
     });
   }
+});
+
+// Receives the user's confirm/cancel decision (forwarded by the Interface
+// Layer via whatever gateway sits in front of it), resolves it against the
+// Safety Layer using the confirmation_id this service stashed earlier, and
+// returns the final natural-language response_text once the real action has
+// actually run (or been cancelled/timed out).
+app.post("/confirm", async (req, res) => {
+  const body = req.body || {};
+  const { session_id, confirmed } = body;
+
+  if (!session_id) {
+    return res.status(400).json({
+      type: "error",
+      error: "session_id is required",
+      session_id: null,
+    });
+  }
+
+  const pending = pendingConfirmations.get(session_id);
+  pendingConfirmations.delete(session_id);
+
+  if (!pending) {
+    return res.json({
+      type: "response_text",
+      text_english: "Sorry, that confirmation has expired or wasn't found — please try again.",
+      target_language: "en",
+      session_id,
+    });
+  }
+
+  const actionResult = await sendConfirmationResponse({
+    confirmed: Boolean(confirmed),
+    session_id,
+    confirmation_id: pending.confirmationId,
+  });
+
+  const responseText = generateResponseText(pending.action, actionResult);
+
+  return res.json({
+    type: "response_text",
+    text_english: responseText,
+    target_language: pending.targetLanguage,
+    session_id,
+  });
 });
 
 app.listen(PORT, () => {

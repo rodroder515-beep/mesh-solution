@@ -1,0 +1,6 @@
+{
+  "name": "Store Assistant",
+  "description": "Voice-first internal test interface for small store owners with language selection, audio capture, and confirmation controls.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

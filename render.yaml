@@ -1,15 +1,19 @@
-# Render Blueprint for the Retail Voice AI Assistant backend (Chunks 2-5).
+# Render Blueprint for the Retail Voice AI Assistant (Chunks 1-6).
 #
-# Deploys 4 services from this one repo, each from its own subdirectory, and
+# Deploys 6 services from this one repo, each from its own subdirectory, and
 # wires them together automatically using Render's built-in service URLs —
 # no manual copy-pasting of URLs between dashboards required after the first
 # sync.
 #
-# Pipeline: Interface (not in this repo yet) -> language-layer -> brain-layer
-#           -> safety-layer -> data-layer -> safety-layer -> brain-layer
-#           -> language-layer -> Interface
+# Pipeline: interface-layer (browser) -> gateway -> language-layer -> gateway
+#           -> brain-layer -> safety-layer -> data-layer -> safety-layer
+#           -> brain-layer -> gateway -> language-layer -> gateway -> interface-layer
 #
-# NOTE ON PLAN: all 4 services default to the free plan. Free services spin
+# The gateway exists because the Interface Layer was built against a single
+# backend exposing /api/v1/message, /api/v1/audio, /api/v1/confirm — not the
+# four separate hop URLs. See gateway/src/server.js.
+#
+# NOTE ON PLAN: all services default to the free plan. Free web services spin
 # down after 15 min of inactivity and take ~30-60s to wake on the next
 # request. That can eat into the Safety Layer's 60s confirmation timeout on a
 # cold start. Bump `plan:` to `starter` on data-layer and safety-layer if you
@@ -45,15 +49,14 @@ services:
     buildCommand: pip install -r requirements.txt
     # Render doesn't support string interpolation directly in render.yaml, so
     # we build the full DATA_LAYER_URL (base + /action) in the shell at
-    # start time, from the Data Layer's own Render URL.
+    # start time, from the Data Layer's own Render URL. gunicorn (not the
+    # Flask dev server) is required in production — it's what actually keeps
+    # the confirmation-timeout sweep thread running, since that thread is
+    # started at module-import time, not inside `if __name__ == "__main__"`.
     startCommand: >-
-      sh -c 'export DATA_LAYER_URL="$DATA_LAYER_BASE_URL/action"; python app.py'
+      sh -c 'export DATA_LAYER_URL="$DATA_LAYER_BASE_URL/action"; gunicorn app:app --bind 0.0.0.0:$PORT'
     healthCheckPath: /health
     envVars:
-      - key: SAFETY_LAYER_PORT
-        value: 10000
-      - key: PORT
-        value: 10000
       - key: CONFIRMATION_TIMEOUT_SECONDS
         value: 60
       - key: SAFETY_LAYER_LOG_PATH
@@ -100,3 +103,43 @@ services:
         value: production
       - key: SARVAM_API_KEY
         sync: false
+
+  # ---- Chunk 6: Gateway (adapts the Interface Layer's contract onto the
+  # Language -> Brain -> Safety -> Data pipeline) ----
+  - type: web
+    name: gateway
+    runtime: node
+    plan: free
+    rootDir: gateway
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LANGUAGE_LAYER_URL
+        fromService:
+          name: language-layer
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: BRAIN_LAYER_URL
+        fromService:
+          name: brain-layer
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # ---- Chunk 1: Interface Layer (static site) ----
+  - type: web
+    name: interface-layer
+    runtime: static
+    rootDir: interface-layer
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_USE_MOCK
+        value: "false"
+      - key: VITE_LANGUAGE_API
+        fromService:
+          name: gateway
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

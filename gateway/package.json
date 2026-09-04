@@ -1,0 +1,17 @@
+{
+  "name": "interface-gateway",
+  "version": "1.0.0",
+  "description": "Chunk 6: gateway that adapts the Interface Layer's (Chunk 1) API contract onto the Language -> Brain -> Safety -> Data pipeline",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20.6.0"
+  }
+}
