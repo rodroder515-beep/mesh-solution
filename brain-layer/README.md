@@ -15,7 +15,7 @@ haven't. This chunk only knows about six actions: `get_stock`, `get_price`,
 cd brain-layer
 npm install
 cp .env.example .env
-# edit .env: set ANTHROPIC_API_KEY
+# edit .env: set GEMINI_API_KEY
 ```
 
 ## Running standalone (before Chunk 4/5 exist)
@@ -43,7 +43,7 @@ npm start                # Brain Layer on :5002
 
 ## Testing
 
-### 1. Classifier-only tests (no server needed, calls Claude directly)
+### 1. Classifier-only tests (no server needed, calls Gemini directly)
 
 ```bash
 npm run test:classify
@@ -98,7 +98,7 @@ Returns `{ "status": "ok", "layer": "brain" }`.
 
 ## How classification works
 
-`src/classifier.js` calls the Anthropic API with a system prompt scoped tightly to the six
+`src/classifier.js` calls the Gemini API with a system prompt scoped tightly to the six
 actions (each with example utterances) and forces a single structured `tool_use` call
 (`route_action`) — no free-text parsing. The model either:
 
@@ -114,7 +114,7 @@ testing.
 | File | Purpose |
 |---|---|
 | `src/server.js` | Express app, `POST /process` entry point |
-| `src/classifier.js` | Claude-backed intent router (forced tool use) |
+| `src/classifier.js` | Gemini-backed intent router (forced tool use) |
 | `src/actions.js` | Shared list of the six actions + which ones need confirmation |
 | `src/dataClient.js` | Forwards `action_request` downstream, returns `action_result` |
 | `src/responseGenerator.js` | Templates `action_result` → natural-language `response_text` |

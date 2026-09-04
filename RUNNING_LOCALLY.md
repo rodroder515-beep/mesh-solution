@@ -59,7 +59,7 @@ python app.py               # http://localhost:5004
 cd brain-layer
 npm install
 cp .env.example .env
-# edit .env: set ANTHROPIC_API_KEY, and set DOWNSTREAM_URL=http://localhost:5004
+# edit .env: set GEMINI_API_KEY, and set DOWNSTREAM_URL=http://localhost:5004
 npm start                  # http://localhost:5002
 
 # Terminal 4 — Language Layer
@@ -125,7 +125,7 @@ dashboards.
 1. Push this repo to GitHub.
 2. In the Render dashboard: **New -> Blueprint**, point it at the repo.
 3. Render will prompt for two secrets it can't infer on its own:
-   - `brain-layer` → `ANTHROPIC_API_KEY`
+   - `brain-layer` → `GEMINI_API_KEY`
    - `language-layer` → `SARVAM_API_KEY` (optional — leave blank to run
      Language Layer in mock mode)
 4. Sync. All four services deploy; Safety and Brain pick up each other's

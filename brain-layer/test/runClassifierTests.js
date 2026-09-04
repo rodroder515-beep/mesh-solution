@@ -1,5 +1,5 @@
 // Run with: npm run test:classify
-// Requires ANTHROPIC_API_KEY to be set (via .env). Calls the real classifier
+// Requires GEMINI_API_KEY to be set (via .env). Calls the real classifier
 // for every phrase in testPhrases.js and reports pass/fail against the
 // expected action (or "clarify").
 
@@ -14,8 +14,8 @@ function checkParamMatches(decision, checkParam) {
 }
 
 async function main() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("ANTHROPIC_API_KEY is not set. Copy .env.example to .env and fill it in.");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY is not set. Copy .env.example to .env and fill it in.");
     process.exit(1);
   }
 
