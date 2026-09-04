@@ -3,7 +3,7 @@ import { ALL_ACTIONS } from "./actions.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 // Tightly scoped system prompt — six actions only, nothing else. Per
 // 03_brain_layer.md's "Prompt design note": don't let the model free-associate
