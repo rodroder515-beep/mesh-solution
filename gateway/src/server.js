@@ -2,6 +2,21 @@ import "dotenv/config";
 import express from "express";
 
 const app = express();
+
+// The Interface Layer is a static site on its own onrender.com origin, so
+// browser requests to this gateway are cross-origin. Allow them — this is
+// an internal test build with no cookies/auth to protect, so a permissive
+// CORS policy is fine for this phase.
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Accept");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "25mb" })); // audio comes in as base64 JSON
 
 const PORT = process.env.PORT || 5000;
