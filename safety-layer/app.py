@@ -106,7 +106,12 @@ def get_pre_state(action, params):
     return None
 
 
+# NOTE (Chunk 6 integration fix): the Brain Layer's dataClient.js POSTs to
+# "{DOWNSTREAM_URL}/action", not "/action_request". Rather than change Brain's
+# code (which also uses "/action" against its own bundled placeholder data
+# layer), the Safety Layer accepts both paths for the same handler.
 @app.route("/action_request", methods=["POST"])
+@app.route("/action", methods=["POST"])
 def action_request():
     req = request.get_json(force=True)
     action = req.get("action")
@@ -305,7 +310,11 @@ def _sweep_loop():
             )
 
 
+# Started at module load time (not just under `if __name__ == "__main__"`) so
+# this still runs when the app is served by a production WSGI server like
+# gunicorn, which imports `app` rather than executing this file directly.
+threading.Thread(target=_sweep_loop, daemon=True).start()
+
 if __name__ == "__main__":
-    threading.Thread(target=_sweep_loop, daemon=True).start()
     port = int(os.environ.get("SAFETY_LAYER_PORT", 5004))
     app.run(host="0.0.0.0", port=port, debug=False)
